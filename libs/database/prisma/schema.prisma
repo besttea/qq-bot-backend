@@ -1,0 +1,128 @@
+generator client {
+  provider = "prisma-client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  student
+  teacher
+  admin
+}
+
+enum HomeworkStatus {
+  draft
+  published
+  closed
+}
+
+enum JobStatus {
+  pending
+  processing
+  completed
+  failed
+}
+
+model User {
+  id        String   @id @default(uuid())
+  qq_openid String   @unique
+  role      Role     @default(student)
+  name      String?
+  created_at DateTime @default(now())
+  
+  classes_taught Class[]
+  enrollments    Enrollment[]
+  submissions    Submission[]
+
+  @@map("users")
+}
+
+model Class {
+  id          String   @id @default(uuid())
+  name        String
+  teacher_id  String
+  join_code   String   @unique
+  created_at  DateTime @default(now())
+
+  teacher     User     @relation(fields: [teacher_id], references: [id])
+  enrollments Enrollment[]
+  homeworks   Homework[]
+
+  @@map("classes")
+}
+
+model Enrollment {
+  user_id    String
+  class_id   String
+  joined_at  DateTime @default(now())
+
+  user       User     @relation(fields: [user_id], references: [id])
+  class      Class    @relation(fields: [class_id], references: [id])
+
+  @@id([user_id, class_id])
+  @@map("enrollments")
+}
+
+model Homework {
+  id           String         @id @default(uuid())
+  class_id     String
+  title        String
+  description  String?
+  deadline     DateTime?
+  requirements Json?
+  status       HomeworkStatus @default(draft)
+  created_at   DateTime       @default(now())
+  updated_at   DateTime       @updatedAt
+
+  class        Class          @relation(fields: [class_id], references: [id])
+  submissions  Submission[]
+
+  @@map("homeworks")
+}
+
+model Submission {
+  id           String   @id @default(uuid())
+  homework_id  String
+  student_id   String
+  content_text String?
+  file_urls    String[]
+  version      Int      @default(1)
+  submitted_at DateTime @default(now())
+
+  homework     Homework @relation(fields: [homework_id], references: [id])
+  student      User     @relation(fields: [student_id], references: [id])
+  grade        Grade?
+  ai_jobs      AIJob[]
+
+  @@map("submissions")
+}
+
+model Grade {
+  submission_id   String   @id
+  score           Decimal? @db.Decimal(5, 2)
+  feedback        String?
+  ai_raw_response Json?
+  is_override     Boolean  @default(false)
+  graded_at       DateTime @default(now())
+
+  submission      Submission @relation(fields: [submission_id], references: [id])
+
+  @@map("grades")
+}
+
+model AIJob {
+  id            String    @id @default(uuid())
+  submission_id String
+  status        JobStatus @default(pending)
+  retry_count   Int       @default(0)
+  error_log     String?
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+
+  submission    Submission @relation(fields: [submission_id], references: [id])
+
+  @@map("ai_jobs")
+}

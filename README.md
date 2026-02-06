@@ -1,72 +1,55 @@
-# QQbot Backend
+# QQ 智能教学机器人 (QQBot Backend)
 
-基于 NestJS Monorepo 架构的 QQ 机器人后端服务，集成了 Prisma、Passport、BullMQ 等技术栈。
+基于 NestJS Monorepo 架构的 QQ 机器人后端服务，集成了 Prisma、Passport、BullMQ 等技术栈，支持 **QQ 原生交互**、**Web 管理后台** 及 **AI 辅助评分**。
 
-## 📚 文档
+## 📚 文档导航 (Documentation)
 
-详细文档请参考 [docs](./docs) 目录：
+请根据您的角色查阅相应文档：
 
-- [开发人员手册](./docs/开发人员手册.md)：环境搭建、启动指南、API 参考。
-- [架构设计与原理说明书](./docs/架构设计与原理说明书.md)：系统架构、模块划分、数据流向。
-- [用户需求说明书](./docs/用户需求说明书.md)：功能需求、非功能需求。
-- [用户使用手册](./docs/用户使用手册.md)：面向最终用户的操作指南。
+*   👨‍💻 **我是开发者 (Developer)**:
+    *   [**开发人员手册 (必读)**](./docs/开发人员手册.md): 包含环境搭建、**一键启动**、内网穿透配置等保姆级教程。
+    *   [架构设计与原理说明书](./docs/架构设计与原理说明书.md): 了解系统架构、模块划分与数据流向。
 
-## 🚀 快速开始
+*   👩‍🏫 **我是用户 (User)**:
+    *   [用户使用手册](./docs/用户使用手册.md): 面向老师和学生的指令指南 (如 `/bind`, `/submit`)。
+    *   [用户需求说明书](./docs/用户需求说明书.md): 项目的功能与非功能需求定义。
+
+## 🚀 极速启动 (Quick Start)
+
+> 更详细的步骤请务必阅读 [开发人员手册](./docs/开发人员手册.md)。
 
 ### 1. 安装依赖
-
 ```bash
 npm install
 ```
 
-### 2. 初始化数据库
-
-确保 Docker 已启动并运行了 PostgreSQL。
-
-> **注意**: 本项目使用 Prisma 7+，依赖 `prisma.config.ts` 进行迁移配置，且在 `DatabaseService` 中使用了 `@prisma/adapter-pg` 进行连接。
-
+### 2. 启动基础设施
 ```bash
-# 启动数据库容器
 docker-compose up -d
-
-# 生成 Prisma Client (这一步至关重要，它会将 Client 生成到 libs/database/src/generated/client)
 npx prisma generate --schema=libs/database/prisma/schema.prisma
-
-# 运行数据库迁移
 npx prisma migrate dev --name init --schema=libs/database/prisma/schema.prisma
 ```
 
-### 3. 启动服务
-
+### 3. 一键启动所有服务 ⚡
 ```bash
-# 启动 Core Service (Auth, Homeworks)
-npm run start:dev core-service
-
-# 启动 API Gateway (可选)
-npm run start:dev api-gateway
-
-# 启动 AI Worker (可选)
-npm run start:dev ai-worker
+npm run start:all
 ```
+*此命令将同时启动 API Gateway, Core Service 和 AI Worker。*
 
-## 🧪 测试
-
-### Auth 模块测试 (Mock)
-
-目前 Auth 模块支持使用预设的 Mock Code 进行快速登录测试：
-
-- **教师账号**: `code: "test_code_teacher"`
-- **学生账号**: `code: "test_code_student"`
-
+### 4. 暴露公网 (必做)
 ```bash
-curl -X POST http://localhost:3000/auth/qq-login \
-  -H "Content-Type: application/json" \
-  -d '{"code": "test_code_teacher"}'
+.\cloudflared.exe tunnel --url http://localhost:3000
 ```
+*复制生成的 URL 到 QQ 开放平台配置回调地址。*
 
-## 🛠️ 技术栈
+## 🛠️ 技术栈 (Tech Stack)
 
-- **Framework**: NestJS (Monorepo)
-- **Database**: PostgreSQL + Prisma ORM (v7+ with @prisma/adapter-pg)
-- **Auth**: Passport + JWT
-- **Language**: TypeScript
+*   **框架**: NestJS (Monorepo)
+*   **语言**: TypeScript
+*   **数据库**: PostgreSQL + Prisma ORM
+*   **鉴权**: Passport + JWT
+*   **队列**: BullMQ + Redis
+*   **QQ SDK**: 自研轻量级 SDK (支持 Ed25519 签名校验)
+
+---
+*Created with ❤️ by Trae AI*

@@ -27,6 +27,12 @@
       ],
       "@ZKLib/database/*": [
         "libs/database/src/*"
+      ],
+      "@ZKLib/qq-sdk": [
+        "libs/qq-sdk/src"
+      ],
+      "@ZKLib/qq-sdk/*": [
+        "libs/qq-sdk/src/*"
       ]
     }
   }

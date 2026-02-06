@@ -1,98 +1,72 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# QQbot Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+基于 NestJS Monorepo 架构的 QQ 机器人后端服务，集成了 Prisma、Passport、BullMQ 等技术栈。
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## 📚 文档
 
-## Description
+详细文档请参考 [docs](./docs) 目录：
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- [开发人员手册](./docs/开发人员手册.md)：环境搭建、启动指南、API 参考。
+- [架构设计与原理说明书](./docs/架构设计与原理说明书.md)：系统架构、模块划分、数据流向。
+- [用户需求说明书](./docs/用户需求说明书.md)：功能需求、非功能需求。
+- [用户使用手册](./docs/用户使用手册.md)：面向最终用户的操作指南。
 
-## Project setup
+## 🚀 快速开始
+
+### 1. 安装依赖
 
 ```bash
-$ npm install
+npm install
 ```
 
-## Compile and run the project
+### 2. 初始化数据库
+
+确保 Docker 已启动并运行了 PostgreSQL。
+
+> **注意**: 本项目使用 Prisma 7+，依赖 `prisma.config.ts` 进行迁移配置，且在 `DatabaseService` 中使用了 `@prisma/adapter-pg` 进行连接。
 
 ```bash
-# development
-$ npm run start
+# 启动数据库容器
+docker-compose up -d
 
-# watch mode
-$ npm run start:dev
+# 生成 Prisma Client (这一步至关重要，它会将 Client 生成到 libs/database/src/generated/client)
+npx prisma generate --schema=libs/database/prisma/schema.prisma
 
-# production mode
-$ npm run start:prod
+# 运行数据库迁移
+npx prisma migrate dev --name init --schema=libs/database/prisma/schema.prisma
 ```
 
-## Run tests
+### 3. 启动服务
 
 ```bash
-# unit tests
-$ npm run test
+# 启动 Core Service (Auth, Homeworks)
+npm run start:dev core-service
 
-# e2e tests
-$ npm run test:e2e
+# 启动 API Gateway (可选)
+npm run start:dev api-gateway
 
-# test coverage
-$ npm run test:cov
+# 启动 AI Worker (可选)
+npm run start:dev ai-worker
 ```
 
-## Deployment
+## 🧪 测试
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+### Auth 模块测试 (Mock)
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+目前 Auth 模块支持使用预设的 Mock Code 进行快速登录测试：
+
+- **教师账号**: `code: "test_code_teacher"`
+- **学生账号**: `code: "test_code_student"`
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+curl -X POST http://localhost:3000/auth/qq-login \
+  -H "Content-Type: application/json" \
+  -d '{"code": "test_code_teacher"}'
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## 🛠️ 技术栈
 
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+- **Framework**: NestJS (Monorepo)
+- **Database**: PostgreSQL + Prisma ORM (v7+ with @prisma/adapter-pg)
+- **Auth**: Passport + JWT
+- **Language**: TypeScript
